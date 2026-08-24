@@ -10,9 +10,13 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
-        // Generated from the Application* properties in the .csproj, including
-        // PerMonitorV2 DPI awareness.
-        ApplicationConfiguration.Initialize();
+        // ApplicationConfiguration.Initialize() is generated for .NET, and does
+        // not exist on .NET Framework. These are the two calls it makes that
+        // matter here. DPI awareness is declared in the embedded manifest
+        // instead, because it has to be set before the process creates a
+        // window, and a manifest travels inside the exe rather than beside it.
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
 
         try
         {

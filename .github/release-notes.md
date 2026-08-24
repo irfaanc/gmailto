@@ -12,18 +12,13 @@ This app puts the choice back in front of you: named mailboxes you pick, so the 
 
 Service wrapper clients like [Ferdium](https://ferdium.org/) are one common route to this. They host Gmail in a desktop window but cannot route a mail link to a particular account. It's a frustrating mess. But not anymore!
 
-## Which file
+## The download
 
-| file | runs on | take this if |
-| --- | --- | --- |
-| `GmailTo.exe` | 32-bit, 64-bit, ARM | **you are not sure** |
-| `GmailTo-x64.exe` | 64-bit Windows | you already have the 64-bit .NET runtime |
-
-Both are a single file, with no installer.
+One file, `GmailTo.exe`, with no installer. It runs natively as 64-bit on 64-bit Windows and as 32-bit on 32-bit Windows, so there is nothing to choose between.
 
 ## Requirements
 
-Windows 10 or 11, and the [.NET Desktop Runtime 8](https://dotnet.microsoft.com/download/dotnet/8.0). You don't need to install it first: if it's missing, Windows shows a dialog with a **Download it now** button that fetches the right version.
+Windows 10 or 11, and nothing to install. It runs on .NET Framework 4.8, which ships with Windows 10 from the May 2019 update and with every Windows 11. On an older Windows 10 it is a [free download from Microsoft](https://dotnet.microsoft.com/download/dotnet-framework/net48).
 
 ## First run
 

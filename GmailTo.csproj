@@ -1,8 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+
+    <!-- .NET Framework 4.8 ships with Windows 10 from the May 2019 update and
+         with every Windows 11, so almost nobody has to install anything. That
+         is the whole reason for targeting it: the .NET 8 desktop runtime is a
+         download, and asking for one to run a program that opens a mail link
+         is a poor trade. -->
+    <TargetFramework>net48</TargetFramework>
+
+    <!-- Framework projects default to C# 7.3. The code uses file-scoped
+         namespaces and nullable annotations, so the version is set rather than
+         left to the target. Not "latest": C# 14 turned 'field' into a keyword
+         inside property accessors, and a language bump should be a decision
+         rather than something that arrives with a new SDK. -->
+    <LangVersion>12.0</LangVersion>
+
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -18,39 +32,41 @@
     <PackageProjectUrl>https://github.com/irfaanc/gmailto</PackageProjectUrl>
     <RepositoryUrl>https://github.com/irfaanc/gmailto</RepositoryUrl>
 
-    <!-- Publish as one file. GmailTo.exe on its own is only the launcher:
-         the program lives in the .dll and the runtime version in the
-         .runtimeconfig.json, so copying just the exe produces a launcher that
-         fails before it can say anything, silently, because a WinExe has no
-         console to print to. Bundling removes the chance to copy it wrong.
-         Still framework-dependent, so it needs the .NET 8 desktop runtime. -->
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>false</SelfContained>
-
-    <!-- x86 by default, which is the build that runs everywhere: natively on
-         32-bit Windows, under WOW64 on 64-bit, and under emulation on ARM64
-         including Windows 10, where x64 emulation does not exist. Pass
-         -r win-x64 for the 64-bit build. Single-file publishing requires some
-         RuntimeIdentifier, so one has to be the default. -->
-    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <!-- AnyCPU, which on Framework runs natively as 64-bit on 64-bit Windows
+         and as 32-bit on 32-bit Windows, from one binary. That is why there is
+         no longer an x86 build and an x64 build. There is also no
+         PublishSingleFile here and none is needed: with no package references
+         the build already produces one exe and nothing beside it. -->
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
 
     <!-- Embedded in the exe, which is also what the DefaultIcon registry entry
          points at ("<exe>,0"), so Explorer, the taskbar and the Default apps
          list all take it from the one place. -->
     <ApplicationIcon>ico\app.ico</ApplicationIcon>
 
-    <!-- Drives the generated ApplicationConfiguration.Initialize(). PerMonitorV2
-         is what lets a window re-scale when dragged to a different-DPI monitor
-         instead of being bitmap-stretched. -->
-    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <ApplicationVisualStyles>true</ApplicationVisualStyles>
-    <ApplicationUseCompatibleTextRendering>false</ApplicationUseCompatibleTextRendering>
+    <!-- DPI awareness lives here rather than in an app.config, so it cannot be
+         separated from the exe. See the comment in the manifest. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- Nothing writes an app.config, and shipping an empty one beside the exe
+         would undermine the one-file story for no gain. -->
+    <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Lets the project build without Visual Studio or a separate targeting
+         pack installed. Build-time only, nothing ships. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+
+    <!-- DataContractJsonSerializer, used to read config.json. In-box on
+         Framework, so it costs nothing at runtime. -->
+    <Reference Include="System.Runtime.Serialization" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Also carried as a resource so the windows can show it at whatever size
-         they need. Reading it back off disk would not survive single-file
-         publishing, where there is no file beside the exe to read. -->
+         they need, rather than reading a file that may not be beside the exe. -->
     <EmbeddedResource Include="ico\app.ico" LogicalName="GmailTo.app.ico" />
   </ItemGroup>
 

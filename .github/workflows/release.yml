@@ -1,7 +1,7 @@
-# Builds both binaries and publishes the release, triggered by pushing a tag.
+# Builds the binary and publishes the release, triggered by pushing a tag.
 #
 # The point is that every release detail that used to be copied by hand is now
-# derived: the version from the tag, the hashes from the files just built, the
+# derived: the version from the tag, the hash from the file just built, the
 # commit from the checkout. Each of those was got wrong at least once by hand.
 name: Release
 
@@ -20,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # .NET Framework 4.8 is already on the runner. The SDK is here to drive
+      # the build, not to be shipped: nothing produced by this job needs it.
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
@@ -35,38 +37,41 @@ jobs:
           "number=$v" >> $env:GITHUB_OUTPUT
           Write-Host "Building $v from ${{ github.sha }}"
 
-      - name: Publish
+      # One AnyCPU binary, which runs natively as 64-bit on 64-bit Windows and
+      # as 32-bit on 32-bit Windows. There is deliberately no second build.
+      - name: Build
         shell: pwsh
         env:
           VERSION: ${{ steps.version.outputs.number }}
         run: |
-          dotnet publish GmailTo.csproj -c Release -o publish     -p:Version=$env:VERSION --nologo
-          dotnet publish GmailTo.csproj -c Release -o publish-x64 -p:Version=$env:VERSION --nologo -r win-x64
+          dotnet build GmailTo.csproj -c Release -p:Version=$env:VERSION --nologo
           New-Item -ItemType Directory -Force artifacts | Out-Null
-          # Both publishes emit GmailTo.exe, so the 64-bit one is renamed rather
-          # than overwriting the other.
-          Copy-Item publish\GmailTo.exe     artifacts\GmailTo.exe
-          Copy-Item publish-x64\GmailTo.exe artifacts\GmailTo-x64.exe
+          Copy-Item bin\Release\net48\GmailTo.exe artifacts\GmailTo.exe
 
-      # The SDK derives SourceRevisionId from git metadata, giving binaries a
-      # "<version>+<sha>" product version. It fails silently, and a release whose
-      # binaries cannot be traced back to a commit is worth stopping for.
-      - name: Check the commit is embedded
+      # Two things worth failing over rather than shipping quietly.
+      #
+      # The SDK derives SourceRevisionId from git metadata to stamp the product
+      # version, and does it silently: a release whose binary cannot be traced
+      # back to a commit is not one to publish.
+      #
+      # And the install story is copying a single file, so anything landing
+      # beside the exe would break it with no obvious symptom.
+      - name: Check the binary stands alone
         shell: pwsh
         run: |
-          foreach ($f in "artifacts\GmailTo.exe", "artifacts\GmailTo-x64.exe") {
-            $pv = (Get-Item $f).VersionInfo.ProductVersion
-            Write-Host "$f -> $pv"
-            if ($pv -notmatch '\+[0-9a-f]{40}$') {
-              throw "$f has no commit in its product version ($pv)"
-            }
-          }
+          $pv = (Get-Item artifacts\GmailTo.exe).VersionInfo.ProductVersion
+          Write-Host "product version: $pv"
+          if ($pv -notmatch '\+[0-9a-f]{40}$') { throw "no commit in the product version ($pv)" }
+
+          $strays = Get-ChildItem bin\Release\net48 -File |
+            Where-Object { $_.Name -notin @('GmailTo.exe', 'GmailTo.pdb') }
+          if ($strays) { throw "files beside the exe: $($strays.Name -join ', ')" }
+          Write-Host "nothing ships beside the exe"
 
       - name: Build the notes
         shell: pwsh
         run: |
-          $x86 = (Get-FileHash artifacts\GmailTo.exe     -Algorithm SHA256).Hash
-          $x64 = (Get-FileHash artifacts\GmailTo-x64.exe -Algorithm SHA256).Hash
+          $hash = (Get-FileHash artifacts\GmailTo.exe -Algorithm SHA256).Hash
           $short = "${{ github.sha }}".Substring(0, 7)
           $fence = [string][char]96 * 3
           $tick = [string][char]96
@@ -74,21 +79,18 @@ jobs:
             ''
             '## Verifying the download'
             ''
-            '| file | SHA256 |'
-            '| --- | --- |'
-            "| ${tick}GmailTo.exe${tick} | ${tick}${x86}${tick} |"
-            "| ${tick}GmailTo-x64.exe${tick} | ${tick}${x64}${tick} |"
+            "${tick}GmailTo.exe${tick} SHA256: ${tick}${hash}${tick}"
             ''
             ($fence + 'powershell')
             'Get-FileHash GmailTo.exe -Algorithm SHA256'
             $fence
             ''
-            "Built from $short, which each binary records in its file version."
+            "Built from $short, which the binary records in its file version."
           )
           $prose = Get-Content .github\release-notes.md -Raw
           Set-Content notes.md ($prose.TrimEnd() + "`n" + ($generated -join "`n")) -Encoding utf8
-          Write-Host "--- notes.md ---"
-          Get-Content notes.md | Select-Object -Last 14
+          Write-Host "--- notes.md tail ---"
+          Get-Content notes.md | Select-Object -Last 12
 
       - name: Publish the release
         shell: pwsh
@@ -97,6 +99,6 @@ jobs:
           VERSION: ${{ steps.version.outputs.number }}
         run: |
           gh release create "${{ github.ref_name }}" `
-            artifacts\GmailTo.exe artifacts\GmailTo-x64.exe `
+            artifacts\GmailTo.exe `
             --title "gmailto $env:VERSION" `
             --notes-file notes.md

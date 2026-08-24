@@ -50,7 +50,7 @@ internal sealed class MailtoRequest
 
         var result = new MailtoRequest { To = Decode(path).Trim() };
 
-        foreach (string pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        foreach (string pair in query.Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries))
         {
             int eq = pair.IndexOf('=');
             string name = eq < 0 ? pair : pair.Substring(0, eq);

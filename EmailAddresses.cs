@@ -15,7 +15,10 @@ internal static class EmailAddresses
     /// </summary>
     public static string Normalise(string? recipient)
     {
-        if (string.IsNullOrWhiteSpace(recipient)) return "";
+        // Checked the long way round rather than with IsNullOrWhiteSpace:
+        // .NET Framework's reference assemblies carry no nullable annotations,
+        // so that call does not tell the compiler the value survived it.
+        if (recipient is null || recipient.Trim().Length == 0) return "";
 
         int at = recipient.IndexOf('@');
         if (at < 0) return "";
@@ -36,7 +39,7 @@ internal static class EmailAddresses
     /// <summary>The domain part of an address, or empty if there isn't one.</summary>
     public static string DomainOf(string? address)
     {
-        if (string.IsNullOrWhiteSpace(address)) return "";
+        if (address is null || address.Trim().Length == 0) return "";
         int at = address.LastIndexOf('@');
         return at >= 0 && at < address.Length - 1 ? address.Substring(at + 1).Trim() : "";
     }

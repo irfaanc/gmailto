@@ -34,16 +34,9 @@ particular account. It's a frustrating mess. But not anymore!
 
 ## Quick start
 
-**1. Download it.** One file, from the
-[latest release](../../releases/latest):
-
-| file | runs on | take this if |
-| --- | --- | --- |
-| `GmailTo.exe` | 32-bit, 64-bit, ARM | **you are not sure** |
-| `GmailTo-x64.exe` | 64-bit Windows | you already have the 64-bit .NET runtime |
-
-Both work on a normal 64-bit machine. The only thing the second saves you is a
-second runtime download.
+**1. Download it.** One file, `GmailTo.exe`, from the
+[latest release](../../releases/latest). It runs natively as 64-bit on 64-bit
+Windows and as 32-bit on 32-bit Windows, so there is nothing to choose between.
 
 **2. Run it.** Windows will say **"Windows protected your PC"**, because the file
 is not code-signed. Click **More info**, then **Run anyway**. That prompt is
@@ -67,14 +60,11 @@ picker.
 
 ### Requirements
 
-**Windows 10 or 11**, and the **.NET Desktop Runtime 8**.
+**Windows 10 or 11.** Nothing to install.
 
-You do not have to check for the runtime first. If it is missing, running the app
-produces a Windows dialog with a **Download it now** button that fetches the
-right version for your machine. Install it up front from
-[dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/8.0) if you
-would rather — it is the *Desktop Runtime* you want, not the SDK and not the
-ASP.NET Core runtime.
+It runs on .NET Framework 4.8, which ships with Windows 10 from the May 2019
+update and with every Windows 11. If you are on an older Windows 10, it is a
+[free download from Microsoft](https://dotnet.microsoft.com/download/dotnet-framework/net48).
 
 ## The picker
 
@@ -210,8 +200,7 @@ cannot launch a path that is not there, and so cannot trigger it.
 
 This does mean running a copy out of a build folder takes the registration too.
 When that happens the settings window says so and names the copy that has been
-orphaned. Swapping the x86 build for the x64 one, or the reverse, works the same
-way: start the new one once.
+orphaned.
 
 ### Registry keys
 
@@ -246,19 +235,17 @@ association when the app owning it goes away.
 
 ## Build
 
-Requires the .NET 8 SDK.
+Requires the .NET 8 SDK, which drives the build. It is not what the app runs
+on and is not needed to use it.
 
 ```bash
-dotnet publish GmailTo.csproj -c Release -o publish
-dotnet publish GmailTo.csproj -c Release -r win-x64 -o publish-x64
+dotnet build GmailTo.csproj -c Release
 ```
 
-The first is the x86 build that runs everywhere; the second is the 64-bit one.
-Each produces a single self-contained-looking `GmailTo.exe` with everything
-bundled in — copy that one file, nothing goes with it.
-
-Neither is actually self-contained: both need the .NET Desktop Runtime, which is
-why they are around 290 KB rather than 150 MB.
+Output is `bin\Release\net48\GmailTo.exe`, and that one file is the whole
+product. An AnyCPU binary runs natively as 64-bit on 64-bit Windows and as
+32-bit on 32-bit Windows, so there is no second build, and with no package
+references there is nothing to sit beside it.
 
 The icon is `ico\app.ico`, seven sizes built from the PNGs beside it.
 
@@ -282,6 +269,9 @@ The icon is `ico\app.ico`, seven sizes built from the PNGs beside it.
 | `Registration.cs` | HKCU registry entries and self-healing |
 | `SelfInstall.cs` | Copying itself to a permanent home on first run |
 | `RegistrationPrompt.cs` | The offer to become the handler, and the walkthrough |
+| `ConfigJson.cs` | Reading and writing `config.json` without System.Text.Json |
+| `Compat.cs` | The few things .NET Framework does not provide |
+| `app.manifest` | DPI awareness, compiled into the exe rather than beside it |
 
 The forms are hand-written, with no `.Designer.cs` files, but follow the shape
 the designer emits because WinForms depends on it — see
