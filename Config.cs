@@ -1,5 +1,4 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Runtime.Serialization;
 
 namespace GmailTo;
 
@@ -88,23 +87,10 @@ internal sealed class AppConfig
     /// </summary>
     public bool StoppedHandling { get; set; }
 
-    [JsonIgnore]
     public static string DirectoryPath =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GmailTo");
 
-    [JsonIgnore]
     public static string FilePath => Path.Combine(DirectoryPath, "config.json");
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-
-        // Rule kinds as "Domain" rather than 1: this file is meant to be
-        // readable and hand-editable.
-        Converters = { new JsonStringEnumConverter() },
-    };
 
     /// <summary>
     /// A new config starts empty on purpose. Seeding a guessed entry would put a
@@ -141,9 +127,9 @@ internal sealed class AppConfig
         AppConfig? config;
         try
         {
-            config = JsonSerializer.Deserialize<AppConfig>(json, JsonOptions);
+            config = ConfigJson.Read(json);
         }
-        catch (JsonException ex)
+        catch (SerializationException ex)
         {
             throw new InvalidDataException($"{path} is not valid JSON.\r\n\r\n{ex.Message}", ex);
         }
@@ -167,7 +153,7 @@ internal sealed class AppConfig
         Directory.CreateDirectory(DirectoryPath);
         string path = FilePath;
         string temp = path + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(this, JsonOptions));
+        File.WriteAllText(temp, ConfigJson.Write(this));
 
         // Replace in one step so an interrupted write cannot leave a half file.
         if (File.Exists(path)) File.Replace(temp, path, null);
