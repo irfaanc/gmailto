@@ -247,7 +247,8 @@ product. An AnyCPU binary runs natively as 64-bit on 64-bit Windows and as
 32-bit on 32-bit Windows, so there is no second build, and with no package
 references there is nothing to sit beside it.
 
-The icon is `ico\app.ico`, seven sizes built from the PNGs beside it.
+The icon is `ico\app.ico`, six sizes from 16 to 256 pixels, each stored as a
+32-bit PNG inside the `.ico`.
 
 ## Files
 
@@ -285,5 +286,5 @@ Windows and Gmail to make it work.
 
 [MIT](LICENSE).
 
-The paper plane icon in `ico\` is original to this project and covered by the
+The origami bird icon in `ico\` is original to this project and covered by the
 same licence.
