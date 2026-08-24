@@ -28,19 +28,19 @@ internal sealed class MailtoRequest
         if (!IsMailto(uri))
             throw new FormatException($"Not a mailto: link:\r\n\r\n{Truncate(uri, 200)}");
 
-        string rest = uri[Scheme.Length..];
+        string rest = uri.Substring(Scheme.Length);
 
         // Some senders emit "mailto://someone@example.com"; the slashes are not
         // part of the address.
         while (rest.StartsWith("//", StringComparison.Ordinal))
-            rest = rest[2..];
+            rest = rest.Substring(2);
 
         string path, query;
         int q = rest.IndexOf('?');
         if (q >= 0)
         {
-            path = rest[..q];
-            query = rest[(q + 1)..];
+            path = rest.Substring(0, q);
+            query = rest.Substring(q + 1);
         }
         else
         {
@@ -53,8 +53,8 @@ internal sealed class MailtoRequest
         foreach (string pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
         {
             int eq = pair.IndexOf('=');
-            string name = eq < 0 ? pair : pair[..eq];
-            string value = eq < 0 ? "" : pair[(eq + 1)..];
+            string name = eq < 0 ? pair : pair.Substring(0, eq);
+            string value = eq < 0 ? "" : pair.Substring(eq + 1);
 
             name = Decode(name).Trim().ToLowerInvariant();
             value = Decode(value);
@@ -100,7 +100,7 @@ internal sealed class MailtoRequest
     }
 
     private static string Truncate(string value, int max) =>
-        value.Length <= max ? value : value[..max] + "...";
+        value.Length <= max ? value : value.Substring(0, max) + "...";
 
     /// <summary>
     /// Builds the Gmail compose URL for the given mailbox. Empty fields are left
@@ -149,9 +149,9 @@ internal sealed class MailtoRequest
     {
         get
         {
-            foreach (string field in new[] { To, Cc, Bcc })
+            foreach (string header in new[] { To, Cc, Bcc })
             {
-                string address = EmailAddresses.Normalise(field);
+                string address = EmailAddresses.Normalise(header);
                 if (address.Length > 0) return address;
             }
             return "";

@@ -39,16 +39,21 @@ internal static class SelfInstall
     public static string InstalledExePath =>
         Path.Combine(InstalledDirectory, Registration.AppKeyName + ".exe");
 
-    /// <summary>The copy actually executing, which is not always the one to register.</summary>
+    /// <summary>
+    /// The copy actually executing, which is not always the one to register.
+    ///
+    /// Application.ExecutablePath rather than Assembly.Location, which reports
+    /// the assembly rather than the host and is empty in some hosting setups,
+    /// and rather than Environment.ProcessPath, which .NET Framework does not
+    /// have.
+    /// </summary>
     public static string RunningExePath
     {
         get
         {
-            string? path = Environment.ProcessPath;
+            string path = Application.ExecutablePath;
             if (!string.IsNullOrEmpty(path)) return path;
 
-            // Same fallback reasoning as Registration.ExePath: not
-            // Assembly.Location, which is empty in a single-file app.
             return Path.Combine(AppContext.BaseDirectory, Registration.AppKeyName + ".exe");
         }
     }
@@ -165,7 +170,7 @@ internal static class SelfInstall
     {
         try
         {
-            return Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+            return Compat.TrimEndingSeparator(Path.GetFullPath(path));
         }
         catch
         {
@@ -185,9 +190,12 @@ internal static class SelfInstall
     {
         try
         {
-            var start = new ProcessStartInfo(InstalledExePath) { UseShellExecute = false };
-            foreach (string arg in args) start.ArgumentList.Add(arg);
-            start.ArgumentList.Add(JustInstalledFlag);
+            var forwarded = new List<string>(args) { JustInstalledFlag };
+            var start = new ProcessStartInfo(InstalledExePath)
+            {
+                UseShellExecute = false,
+                Arguments = Compat.JoinArguments(forwarded.ToArray()),
+            };
 
             return Process.Start(start) is not null;
         }

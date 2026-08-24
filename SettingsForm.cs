@@ -205,7 +205,7 @@ internal sealed class SettingsForm : Form
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
         int plus = version?.IndexOf('+') ?? -1;
-        if (plus >= 0) version = version![..plus];
+        if (plus >= 0) version = version!.Substring(0, plus);
 
         return string.IsNullOrEmpty(version)
             ? Registration.DisplayName
@@ -268,7 +268,7 @@ internal sealed class SettingsForm : Form
 
         if (Accounts.Count > 0)
         {
-            int index = Math.Clamp(selectIndex, 0, Accounts.Count - 1);
+            int index = Compat.Clamp(selectIndex, 0, Accounts.Count - 1);
             _list.Items[index].Selected = true;
             _list.Items[index].Focused = true;
         }

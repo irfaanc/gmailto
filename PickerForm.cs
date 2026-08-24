@@ -163,7 +163,7 @@ internal sealed class PickerForm : Form
         FitToRows();
 
         if (_list.Items.Count > 0)
-            _list.SelectedIndex = Math.Clamp(_initialIndex, 0, _list.Items.Count - 1);
+            _list.SelectedIndex = Compat.Clamp(_initialIndex, 0, _list.Items.Count - 1);
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
@@ -180,7 +180,7 @@ internal sealed class PickerForm : Form
     /// </summary>
     private void FitToRows()
     {
-        int rows = Math.Clamp(_list.Items.Count, 1, MaxVisibleRows);
+        int rows = Compat.Clamp(_list.Items.Count, 1, MaxVisibleRows);
         _list.Height = (rows * _list.ItemHeight) + LogicalToDeviceUnits(8);
 
         int y = _list.Bottom + LogicalToDeviceUnits(8);

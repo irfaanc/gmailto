@@ -380,11 +380,11 @@ internal static class Registration
         if (command[0] == '"')
         {
             int end = command.IndexOf('"', 1);
-            return end > 1 ? command[1..end] : null;
+            return end > 1 ? command.Substring(1, end - 1) : null;
         }
 
         int space = command.IndexOf(' ');
-        return space < 0 ? command : command[..space];
+        return space < 0 ? command : command.Substring(0, space);
     }
 
     private static RegistrationStatus Repair(out string? error)

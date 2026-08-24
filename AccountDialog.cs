@@ -103,11 +103,11 @@ internal sealed class AccountDialog : Form
         // Only when typing at the very end. Editing mid-string should not append.
         if (_email.SelectionStart != text.Length || _email.SelectionLength != 0) return;
 
-        string typed = text[(at + 1)..];
+        string typed = text.Substring(at + 1);
         if (typed.Length >= SuggestedDomain.Length) return;
         if (!SuggestedDomain.StartsWith(typed, StringComparison.OrdinalIgnoreCase)) return;
 
-        string rest = SuggestedDomain[typed.Length..];
+        string rest = SuggestedDomain.Substring(typed.Length);
         _suggesting = true;
         try
         {

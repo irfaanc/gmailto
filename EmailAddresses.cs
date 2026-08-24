@@ -26,7 +26,7 @@ internal static class EmailAddresses
         int end = at;
         while (end < recipient.Length - 1 && !IsBoundary(recipient[end + 1])) end++;
 
-        string address = recipient[start..(end + 1)].Trim();
+        string address = recipient.Substring(start, end + 1 - start).Trim();
 
         // An address of just "@" or with nothing either side is not one.
         int split = address.IndexOf('@');
@@ -38,7 +38,7 @@ internal static class EmailAddresses
     {
         if (string.IsNullOrWhiteSpace(address)) return "";
         int at = address.LastIndexOf('@');
-        return at >= 0 && at < address.Length - 1 ? address[(at + 1)..].Trim() : "";
+        return at >= 0 && at < address.Length - 1 ? address.Substring(at + 1).Trim() : "";
     }
 
     private static bool IsBoundary(char c) =>
