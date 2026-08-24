@@ -222,6 +222,34 @@ Event Log has it:
 
 This is why the project publishes as a single file.
 
+### PerMonitorV2 on .NET Framework needs an app.config, and half of it is worse than none
+
+`Application.SetHighDpiMode` and `HighDpiMode` do not exist on .NET Framework;
+they arrived with .NET Core 3.0. The supported route is the
+`System.Windows.Forms.ApplicationConfigurationSection` in an app.config, which
+ships as a second file beside the exe.
+
+The obvious dodge is to declare PerMonitorV2 in the manifest instead, since a
+manifest is compiled into the exe. **It does not work, and it fails in the
+expensive direction.** Measured 2026-08-24 on a 150% primary and a 175%
+secondary, moving one window between them:
+
+| | DPI reported | window size |
+|---|---|---|
+| on the 150% monitor | 144 | 514x237 |
+| on the 175% monitor | 168 | 512x236 |
+
+The manifest does take effect: the window reports `PER_MONITOR_AWARE`, and
+Windows updates its DPI on the move. What does not happen is the re-layout.
+WinForms keeps the old pixel size and draws text at the new scale, so labels
+overflow their controls. "Remember:" rendered as "Remembe", the drop-down
+overlapped it, and the hint line was clipped at both edges.
+
+Being per-monitor aware tells Windows not to bitmap-scale the window, so the
+usual safety net is gone and nothing else takes over. Plain `<dpiAware>true</dpiAware>`
+is the honest setting without the config file: blurry on a
+different-DPI monitor, but never the wrong size or clipped.
+
 ---
 
 ## Testing UI from a script
