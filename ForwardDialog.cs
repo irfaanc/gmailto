@@ -5,7 +5,7 @@ namespace GmailTo;
 
 /// <summary>
 /// Explains the last automatic forward and offers to undo it: send the same
-/// message again from a different account, or remove the rule that caused it.
+/// message again from a different profile, or remove the rule that caused it.
 ///
 /// Opening this counts as having seen the explanation, so closing it clears the
 /// record and the stored message. The rule itself stays in the rules list, which
@@ -34,8 +34,8 @@ internal sealed class ForwardDialog : Form
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
 
-        Account? account = config.FindByAddress(record.SentFrom);
-        string sender = account?.Name ?? record.SentFrom;
+        Profile? profile = config.FindByAddress(record.SentFrom);
+        string sender = profile?.Name ?? record.SentFrom;
 
         _what.Text =
             $"A mail link to {record.Recipient} was opened from {sender} " +
@@ -95,13 +95,13 @@ internal sealed class ForwardDialog : Form
 
         // Always the picker here, never the rule: the rule is what went wrong.
         using var picker = new PickerForm(_config, request);
-        if (picker.ShowDialog(this) != DialogResult.OK || picker.SelectedAccount is null) return;
+        if (picker.ShowDialog(this) != DialogResult.OK || picker.SelectedProfile is null) return;
 
-        if (!Mail.Open(request, picker.SelectedAccount, this)) return;
+        if (!Mail.Open(request, picker.SelectedProfile, this)) return;
 
         if (picker.RememberAs is RuleKind kind)
         {
-            _config.SetRule(kind, picker.RememberMatch, picker.SelectedAccount.EmailAddress);
+            _config.SetRule(kind, picker.RememberMatch, picker.SelectedProfile.EmailAddress);
             TrySave();
         }
 
@@ -123,7 +123,7 @@ internal sealed class ForwardDialog : Form
         {
             TrySave();
             MessageBox.Show(this,
-                $"Removed. Mail to {_record.MatchedRule} will ask which account to use again.",
+                $"Removed. Mail to {_record.MatchedRule} will ask which profile to use again.",
                 "gmailto", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

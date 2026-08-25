@@ -15,9 +15,9 @@ Gmail — including the evidence for the ones cited below — live in
 
 ## The problem
 
-Choosing which account sends is currently a manual act on every mail link. In
+Choosing which profile sends is currently a manual act on every mail link. In
 practice the choice is nearly always a function of the recipient: anything at a
-work domain goes from the work account. The app should be able to learn that
+work domain goes from the work profile. The app should be able to learn that
 once and then stop asking.
 
 ## Rules
@@ -39,14 +39,14 @@ By specificity, not by user-defined order:
 
 1. exact address rule
 2. domain rule
-3. first account in the list
+3. first profile in the list
 
 Specificity ordering means rules never need reordering, so the settings window
-needs no Move up/down for them. It also makes account *order* meaningful: the
-first account is the default when nothing matches, and the accounts list is
+needs no Move up/down for them. It also makes profile *order* meaningful: the
+first profile is the default when nothing matches, and the profiles list is
 already reorderable.
 
-There is deliberately no "last used account" step. See the rejected list.
+There is deliberately no "last used profile" step. See the rejected list.
 
 ### Creating rules
 
@@ -57,14 +57,14 @@ a remember control with three states:
 - **Remember this address**
 - **Remember this domain**
 
-Chosen alongside the account, so the rule is written at the moment the context
+Chosen alongside the profile, so the rule is written at the moment the context
 is in front of the user.
 
 - The control resets to "do not remember" on every launch. Sticky behaviour
   would quietly mint rules for every later recipient.
 - Choosing again **overwrites** any existing rule for the same address or
   domain. This is also how a rule gets edited: send again, pick the right
-  account, remember again.
+  profile, remember again.
 - Naming the target in the label ("Remember company.com") is preferred
   over a generic "Remember domain", because it makes the multi-recipient
   ambiguity visible rather than silent.
@@ -123,7 +123,7 @@ Requirements:
 
 One record, describing the most recent thing the app did **without asking**.
 
-Stored: recipient, which rule matched, which account was chosen, when.
+Stored: recipient, which rule matched, which profile was chosen, when.
 
 Shown when the notification is clicked, or when the app is launched with no
 arguments.
@@ -142,7 +142,7 @@ is still sitting in the list to be found and removed.
 
 ## The retry payload
 
-To offer "send this again from the right account", the original message has to be
+To offer "send this again from the right profile", the original message has to be
 kept. That means the full `mailto:` URI, verbatim: one string, and replay is then
 trivial.
 
@@ -181,10 +181,10 @@ this project spent its time eliminating.
 **User-ordered rules with Move up/down.** Unnecessary once precedence is by
 specificity.
 
-**Global last-used account as a fallback.** Dropped. With automatic forwarding, a
+**Global last-used profile as a fallback.** Dropped. With automatic forwarding, a
 rule firing would update last-used, so a work domain match would silently change
 the default for the next unrelated personal message. Removing it removes that
-coupling, and leaves account list order as the single, visible lever. Note this
+coupling, and leaves profile list order as the single, visible lever. Note this
 reverses commit `0e17381`, which introduced `LastUsedAddress`; that field and its
 handling would come out.
 
@@ -203,12 +203,12 @@ here.
 
 **Dropping the body from the retry payload** on the grounds that it is still
 visible in the open Gmail tab. Rejected in favour of the better user flow: one
-button that resends everything to the correct account.
+button that resends everything to the correct profile.
 
 **Outlook web and Yahoo as additional providers.** Rejected, and not because of
 the compose URLs, which are the easy part. The obstacle is account selection.
 Gmail's `authuser` names a mailbox by address, which is the single property this
-app is built on and the reason `Account.EmailAddress` replaced Gmail's `/u/N/`
+app is built on and the reason `Profile.EmailAddress` replaced Gmail's `/u/N/`
 index. Nothing equivalent exists elsewhere: Outlook personal takes a positional
 slot, which is exactly the failure mode that index was dropped for; Outlook for
 work or school has no per-address selector in the compose deeplink at all; and
@@ -246,7 +246,7 @@ Sketch, not final:
 
 ```json
 {
-  "Accounts": [ ... ],
+  "Profiles": [ ... ],
   "Rules": [
     { "Kind": "Domain",  "Match": "company.com", "EmailAddress": "you@company.com" },
     { "Kind": "Address", "Match": "bob@example.com",     "EmailAddress": "you@gmail.com" }
@@ -260,5 +260,5 @@ Sketch, not final:
 }
 ```
 
-Rules target an account by address, matching how accounts are already identified
+Rules target a profile by address, matching how profiles are already identified
 everywhere else.

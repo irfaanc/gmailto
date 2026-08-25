@@ -25,7 +25,7 @@ namespace GmailTo;
 internal static class ConfigJson
 {
     [DataContract]
-    private sealed class WireAccount
+    private sealed class WireProfile
     {
         [DataMember] public string? Name { get; set; }
         [DataMember] public string? EmailAddress { get; set; }
@@ -51,7 +51,7 @@ internal static class ConfigJson
     [DataContract]
     private sealed class WireConfig
     {
-        [DataMember] public List<WireAccount>? Accounts { get; set; }
+        [DataMember] public List<WireProfile>? Profiles { get; set; }
         [DataMember] public List<WireRule>? Rules { get; set; }
         [DataMember] public WireForward? LastAutomaticForward { get; set; }
         [DataMember] public bool StoppedHandling { get; set; }
@@ -86,13 +86,13 @@ internal static class ConfigJson
 
         var config = new AppConfig { StoppedHandling = wire.StoppedHandling };
 
-        foreach (WireAccount account in wire.Accounts ?? new List<WireAccount>())
+        foreach (WireProfile profile in wire.Profiles ?? new List<WireProfile>())
         {
-            if (account is null) continue;
-            config.Accounts.Add(new Account
+            if (profile is null) continue;
+            config.Profiles.Add(new Profile
             {
-                Name = account.Name ?? "",
-                EmailAddress = account.EmailAddress ?? "",
+                Name = profile.Name ?? "",
+                EmailAddress = profile.EmailAddress ?? "",
             });
         }
 
@@ -146,11 +146,11 @@ internal static class ConfigJson
         var text = new StringBuilder();
         text.Append('{').Append(NewLine);
 
-        text.Append("  \"Accounts\": ");
-        AppendObjects(text, config.Accounts, (b, account) =>
+        text.Append("  \"Profiles\": ");
+        AppendObjects(text, config.Profiles, (b, profile) =>
         {
-            AppendField(b, "Name", account.Name, last: false);
-            AppendField(b, "EmailAddress", account.EmailAddress, last: true);
+            AppendField(b, "Name", profile.Name, last: false);
+            AppendField(b, "EmailAddress", profile.EmailAddress, last: true);
         });
         text.Append(',').Append(NewLine);
 

@@ -2,7 +2,7 @@ namespace GmailTo;
 
 /// <summary>
 /// Holds the original mailto: link of the last automatic forward, so it can be
-/// re-sent from a different account if the rule turns out to be wrong.
+/// re-sent from a different profile if the rule turns out to be wrong.
 ///
 /// Kept in its own file rather than inside config.json for one reason: it can
 /// then be removed with a single delete that cannot half-succeed. It contains

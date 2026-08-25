@@ -4,7 +4,7 @@ using System.Windows.Forms;
 namespace GmailTo;
 
 /// <summary>
-/// A small notice in the corner of the screen saying which account a mail link
+/// A small notice in the corner of the screen saying which profile a mail link
 /// was sent from, shown when a rule forwarded without asking.
 ///
 /// Drawn rather than raised as a Windows toast: a real toast needs an
@@ -46,14 +46,14 @@ internal sealed class ToastForm : Form
         }
     }
 
-    public ToastForm(string accountName, string recipient, string matchedRule)
+    public ToastForm(string profileName, string recipient, string matchedRule)
     {
         SuspendLayout();
 
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
 
-        _headline.Text = $"Sent from {accountName}";
+        _headline.Text = $"Sent from {profileName}";
         _headline.Font = new Font(Font, FontStyle.Bold);
         _headline.AutoEllipsis = true;
         _headline.SetBounds(14, 12, 292, 18);

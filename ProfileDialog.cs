@@ -3,8 +3,8 @@ using System.Windows.Forms;
 
 namespace GmailTo;
 
-/// <summary>Add/edit dialog for a single account entry.</summary>
-internal sealed class AccountDialog : Form
+/// <summary>Add/edit dialog for a single profile entry.</summary>
+internal sealed class ProfileDialog : Form
 {
     private const string SuggestedDomain = "gmail.com";
 
@@ -21,9 +21,9 @@ internal sealed class AccountDialog : Form
     private readonly Button _ok = new();
     private readonly Button _cancel = new();
 
-    public Account Result { get; private set; } = new();
+    public Profile Result { get; private set; } = new();
 
-    public AccountDialog(Account? existing)
+    public ProfileDialog(Profile? existing)
     {
         // 96 DPI units throughout; see the note in PickerForm about why the
         // scaling declaration has to sit inside SuspendLayout/ResumeLayout.
@@ -44,7 +44,7 @@ internal sealed class AccountDialog : Form
         _email.Text = existing?.EmailAddress ?? "";
         _email.SetBounds(12, 86, 336, 23);
 
-        // Wired after the initial text is set, so loading an existing account
+        // Wired after the initial text is set, so loading an existing profile
         // does not trigger a completion.
         _email.KeyDown += (_, e) => _deleting = e.KeyCode is Keys.Back or Keys.Delete;
         _email.TextChanged += (_, _) => SuggestDomain();
@@ -61,7 +61,7 @@ internal sealed class AccountDialog : Form
         ClientSize = new Size(364, 161);
         Controls.AddRange(new Control[] { _nameLabel, _name, _emailLabel, _email, _ok, _cancel });
 
-        Text = existing is null ? "Add account" : "Edit account";
+        Text = existing is null ? "Add profile" : "Edit profile";
         AppIcon.Apply(this);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition = FormStartPosition.CenterParent;
@@ -126,7 +126,7 @@ internal sealed class AccountDialog : Form
         string name = _name.Text.Trim();
         if (name.Length == 0)
         {
-            Reject("Give the account a display name.", _name);
+            Reject("Give the profile a name.", _name);
             return;
         }
 
@@ -136,7 +136,7 @@ internal sealed class AccountDialog : Form
         string email = _email.Text.Trim();
         if (email.Length == 0)
         {
-            Reject("Enter the Gmail address this account should send from.", _email);
+            Reject("Enter the Gmail address this profile sends from.", _email);
             return;
         }
 
@@ -146,7 +146,7 @@ internal sealed class AccountDialog : Form
             return;
         }
 
-        Result = new Account { Name = name, EmailAddress = email };
+        Result = new Profile { Name = name, EmailAddress = email };
     }
 
     private void Reject(string message, Control focus)

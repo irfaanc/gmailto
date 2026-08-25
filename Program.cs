@@ -44,7 +44,7 @@ internal static class Program
             {
                 ShowError(
                     "This app expects a mailto: link.\r\n\r\nIt was started with:\r\n" +
-                    args[0] + "\r\n\r\nRun it with no arguments to edit accounts.");
+                    args[0] + "\r\n\r\nRun it with no arguments to edit profiles.");
                 return 2;
             }
 
@@ -108,7 +108,7 @@ internal static class Program
         // stopped, since registering would take the association back.
         if (!config.StoppedHandling) Registration.Prepare(out _);
 
-        if (config.Accounts.Count == 0)
+        if (config.Profiles.Count == 0)
         {
             // On a first run this is the tail of setup rather than a complaint:
             // the app has just put itself somewhere permanent and needs the one
@@ -116,16 +116,16 @@ internal static class Program
             // happened, and as a plain gap otherwise.
             ShowWarning(SelfInstall.JustInstalled
                 ? "Installed to\r\n" + SelfInstall.InstalledDirectory +
-                  "\r\n\r\nOne step left: the account to send from. The window that opens " +
+                  "\r\n\r\nOne step left: a profile to send from. The window that opens " +
                   "next asks for it, then this message will carry on."
-                : "No accounts are configured yet, so there is nowhere to send this.\r\n\r\n" +
+                : "No profiles are set up yet, so there is nowhere to send this.\r\n\r\n" +
                   "Add one in the settings window that opens next and this message will carry on.");
             RunSettings();
 
             // Pick up whatever the settings window just wrote, then continue
             // with the original link rather than making the user click it again.
             AppConfig? updated = LoadConfigOrExplain();
-            if (updated is null || updated.Accounts.Count == 0) return 3;
+            if (updated is null || updated.Profiles.Count == 0) return 3;
             config = updated;
         }
 
@@ -137,16 +137,16 @@ internal static class Program
         bool forcePicker = (Control.ModifierKeys & Keys.Shift) != 0;
 
         Rule? rule = config.MatchRule(request.PrimaryRecipient);
-        Account? byRule = config.FindByAddress(rule?.EmailAddress);
+        Profile? byRule = config.FindByAddress(rule?.EmailAddress);
         if (rule is not null && byRule is not null && !forcePicker)
             return ForwardAutomatically(config, request, uri, rule, byRule);
 
         using var picker = new PickerForm(config, request);
-        if (picker.ShowDialog() != DialogResult.OK || picker.SelectedAccount is null)
+        if (picker.ShowDialog() != DialogResult.OK || picker.SelectedProfile is null)
             return 0;   // Esc: do nothing at all.
 
-        Account account = picker.SelectedAccount;
-        if (!Mail.Open(request, account, null)) return 4;
+        Profile profile = picker.SelectedProfile;
+        if (!Mail.Open(request, profile, null)) return 4;
 
         // Showing the picker means nothing is unexplained any more, so any record
         // of an earlier automatic forward stops being worth keeping, and the
@@ -157,7 +157,7 @@ internal static class Program
 
         if (picker.RememberAs is RuleKind kind)
         {
-            config.SetRule(kind, picker.RememberMatch, account.EmailAddress);
+            config.SetRule(kind, picker.RememberMatch, profile.EmailAddress);
             dirty = true;
         }
 
@@ -190,15 +190,15 @@ internal static class Program
     /// and the notice afterwards is what makes it noticeable rather than silent.
     /// </summary>
     private static int ForwardAutomatically(
-        AppConfig config, MailtoRequest request, string originalUri, Rule rule, Account account)
+        AppConfig config, MailtoRequest request, string originalUri, Rule rule, Profile profile)
     {
-        if (!Mail.Open(request, account, null)) return 4;
+        if (!Mail.Open(request, profile, null)) return 4;
 
         config.LastAutomaticForward = new ForwardRecord
         {
             Recipient = request.PrimaryRecipient,
             MatchedRule = rule.Match,
-            SentFrom = account.EmailAddress,
+            SentFrom = profile.EmailAddress,
             When = DateTimeOffset.Now,
         };
 
@@ -215,7 +215,7 @@ internal static class Program
 
         // Runs a message loop until the notice fades or is clicked, which is why
         // this launch outlives the browser handoff.
-        using var toast = new ToastForm(account.Name, request.PrimaryRecipient, rule.Match);
+        using var toast = new ToastForm(profile.Name, request.PrimaryRecipient, rule.Match);
         Application.Run(new ApplicationContext(toast));
 
         if (toast.Clicked) ShowLastForward(config);

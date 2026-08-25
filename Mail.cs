@@ -14,9 +14,9 @@ internal static class Mail
     /// the wrong account rather than a delivered message.
     /// </summary>
     /// <returns>False if the browser could not be launched, having said so.</returns>
-    public static bool Open(MailtoRequest request, Account account, IWin32Window? owner)
+    public static bool Open(MailtoRequest request, Profile profile, IWin32Window? owner)
     {
-        string url = request.ToGmailComposeUrl(account.EmailAddress);
+        string url = request.ToGmailComposeUrl(profile.EmailAddress);
         try
         {
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });

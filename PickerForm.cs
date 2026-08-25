@@ -8,7 +8,7 @@ namespace GmailTo;
 /// selected. Intercepting WM_LBUTTONDOWN is the only way to see the selection
 /// as it was *before* the click landed.
 /// </summary>
-internal sealed class AccountListBox : ListBox
+internal sealed class ProfileListBox : ListBox
 {
     private const int WM_LBUTTONDOWN = 0x0201;
 
@@ -35,14 +35,14 @@ internal sealed class AccountListBox : ListBox
 }
 
 /// <summary>
-/// The account chooser shown when a mailto: link is opened. Enter, or clicking
+/// The profile chooser shown when a mailto: link is opened. Enter, or clicking
 /// the highlighted row, sends; Esc cancels.
 /// </summary>
 internal sealed class PickerForm : Form
 {
     private const int MaxVisibleRows = 10;
 
-    private readonly AccountListBox _list = new();
+    private readonly ProfileListBox _list = new();
     private readonly Label _recipient = new();
     private readonly Label _reason = new();
     private readonly Label _rememberLabel = new();
@@ -54,7 +54,7 @@ internal sealed class PickerForm : Form
     /// <summary>Options offered by the remember box, parallel to its items.</summary>
     private readonly List<(string Label, RuleKind? Kind, string Match)> _rememberOptions = new();
 
-    public Account? SelectedAccount { get; private set; }
+    public Profile? SelectedProfile { get; private set; }
 
     /// <summary>The kind of rule to write on accept, or null to write none.</summary>
     public RuleKind? RememberAs { get; private set; }
@@ -75,20 +75,20 @@ internal sealed class PickerForm : Form
         _recipient.SetBounds(12, 10, 316, 18);
 
         _list.IntegralHeight = true;
-        _list.DisplayMember = nameof(Account.Name);
+        _list.DisplayMember = nameof(Profile.Name);
         _list.SetBounds(12, 34, 316, 44);
-        foreach (Account account in config.Accounts)
-            _list.Items.Add(account);
+        foreach (Profile profile in config.Profiles)
+            _list.Items.Add(profile);
         _list.SelectedItemClicked += (_, _) => Accept();
         _list.DoubleClick += (_, _) => Accept();
 
-        // A rule decides the highlighted account. With no rule the first account
+        // A rule decides the highlighted profile. With no rule the first profile
         // wins: there is deliberately no "last used" memory, which would make
         // the default depend on invisible state from an unrelated message.
         string recipient = request.PrimaryRecipient;
         Rule? matched = config.MatchRule(recipient);
-        Account? byRule = config.FindByAddress(matched?.EmailAddress);
-        _initialIndex = byRule is null ? 0 : config.Accounts.IndexOf(byRule);
+        Profile? byRule = config.FindByAddress(matched?.EmailAddress);
+        _initialIndex = byRule is null ? 0 : config.Profiles.IndexOf(byRule);
 
         // Rules written casually at send time are easy to forget, so the picker
         // says when one is responsible for the highlight.
@@ -121,7 +121,7 @@ internal sealed class PickerForm : Form
         Controls.Add(_remember);
         Controls.Add(_hint);
 
-        Text = "Send with which account?";
+        Text = "Send with which profile?";
         AppIcon.Apply(this);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition = FormStartPosition.CenterScreen;
@@ -223,9 +223,9 @@ internal sealed class PickerForm : Form
 
     private void Accept()
     {
-        if (_list.SelectedItem is not Account account) return;
+        if (_list.SelectedItem is not Profile profile) return;
 
-        SelectedAccount = account;
+        SelectedProfile = profile;
 
         int choice = _remember.SelectedIndex;
         if (choice > 0 && choice < _rememberOptions.Count)

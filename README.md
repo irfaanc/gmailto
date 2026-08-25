@@ -1,17 +1,17 @@
 # gmailto
 
-A small Windows utility that accepts your `mailto:` links, asks which Gmail
-account you want to send from, and opens Gmail's compose window in your default
+A small Windows utility that accepts your `mailto:` links, asks which profile
+you want to send from, and opens Gmail's compose window in your default
 browser, in the right email account. No tray icon, no background service: it
 starts, does one job, exits.
 
 It supports any Gmail hosted email account, not just @gmail.
 
-Teach it what account to route your email to (ex: *anything at this domain goes
+Teach it which profile to route your email to (ex: *anything at this domain goes
 from my work account*), and it will do it automatically! Without scripting, or
 hand-edited configuration files.
 
-![The gmailto picker: a small window listing your Gmail accounts, asking which one to send from](docs/picker.png)
+![The gmailto picker: a small window listing your profiles, asking which one to send from](docs/picker.png)
 
 ## Why
 
@@ -49,10 +49,10 @@ admin rights needed. The file you downloaded is left where it is, yours to keep
 or bin. If you would rather choose the location, put it somewhere first and it
 leaves your choice alone.
 
-**3. Add an account.** It asks straight away. Give it a name and the Gmail
+**3. Add a profile.** It asks straight away. Give it a name and the Gmail
 address to send from.
 
-**4. Say yes to becoming the mail handler.** It offers as soon as the account
+**4. Say yes to becoming the mail handler.** It offers as soon as the profile
 exists. Two dialogs in a row on a first run is normal.
 
 And that's it. Clicking a `mailto:` link anywhere now brings up the
@@ -74,23 +74,23 @@ Clicking a `mailto:` link brings up the picker, unless a [rule](#rules) matches.
 - Clicking a different row selects it; click again, or press Enter, to send.
 - **Esc** cancels and nothing happens.
 
-The highlighted account is whichever a rule names, or the first account in the
+The highlighted profile is whichever a rule names, or the first profile in the
 list. That list is reorderable, so the top entry is your default.
 
 ## Rules
 
-A rule maps a recipient to the account that should write to them, either one
+A rule maps a recipient to the profile that should write to them, either one
 exact address or a whole domain.
 
 ### Creating them
 
-In the picker, not in an editor. Beside the accounts is a **Remember** box
-offering to always use the chosen account for that address or for its domain. It
+In the picker, not in an editor. Beside the profiles is a **Remember** box
+offering to always use the chosen profile for that address or for its domain. It
 defaults to remembering nothing and resets every launch, so a rule only exists
 because you asked for it.
 
 Choosing again replaces an existing rule, which is also how you edit one: send to
-that recipient again, pick the right account, remember again.
+that recipient again, pick the right profile, remember again.
 
 ### How they match
 
@@ -104,12 +104,12 @@ Remember box names its target — *Always use for company.com* — rather than s
 
 ### When one matches
 
-The picker does not appear. The message opens in the account the rule names, and
-a notice in the corner says which account and which rule. It never takes focus,
+The picker does not appear. The message opens in the profile the rule names, and
+a notice in the corner says which profile and which rule. It never takes focus,
 and fades after a few seconds.
 
 **Nothing is sent.** This opens a Gmail *compose window*, so a rule that fires
-wrongly leaves a draft in the wrong account, visible in the browser, with nothing
+wrongly leaves a draft in the wrong Gmail account, visible in the browser, with nothing
 delivered.
 
 **Hold Shift while clicking a mail link** to force the picker anyway.
@@ -117,8 +117,8 @@ delivered.
 ### Undoing one
 
 Click the notice, or just run the app, to see the last thing it did without
-asking: who it went to, which account, which rule, and when. From there you can
-send the same message again from a different account, or remove the rule.
+asking: who it went to, which profile, which rule, and when. From there you can
+send the same message again from a different profile, or remove the rule.
 
 Only the most recent is kept, and it clears once seen, superseded, or once you
 send anything manually. If you miss one, the rule that caused it is still listed.
@@ -128,12 +128,12 @@ send anything manually. If you miss one, the rule that caused it is still listed
 **Rules...** in settings lists them with a Remove button. There is no add or edit
 there: the picker already does both.
 
-Editing an account's address repoints its rules. Deleting an account deletes the
+Editing a profile's address repoints its rules. Deleting a profile deletes the
 rules aiming at it, and says how many first.
 
 ## Settings
 
-Run `GmailTo.exe` with no arguments. Accounts can be added, edited,
+Run `GmailTo.exe` with no arguments. Profiles can be added, edited,
 reordered and removed, and the button at the bottom toggles between **Set as
 default mail handler** and **Stop handling mail links** depending on which state
 you are in.
@@ -148,7 +148,7 @@ association, it cannot be handed back to whoever held it before.
 
 ```json
 {
-  "Accounts": [
+  "Profiles": [
     { "Name": "Personal", "EmailAddress": "you@gmail.com" },
     { "Name": "Work", "EmailAddress": "you@company.com" }
   ],
@@ -159,12 +159,12 @@ association, it cannot be handed back to whoever held it before.
 }
 ```
 
-There is no Save button. Every change — accounts, rules, ordering — is written as
-it is made, and closing a window never discards anything. Removing an account
+There is no Save button. Every change — profiles, rules, ordering — is written as
+it is made, and closing a window never discards anything. Removing a profile
 asks first and says which rules go with it.
 
 Hand-editing is fine: `Kind` is written by name rather than as a number, and
-rules point at accounts by address. An entry with no `EmailAddress` is dropped on
+rules point at profiles by address. An entry with no `EmailAddress` is dropped on
 load. A corrupt file is reported, with an offer to reset it.
 
 One other file lives beside it: `last-forward.uri`, holding the link of the last
@@ -185,7 +185,7 @@ problem being solved.
 ### Upgrading
 
 Download the newer release and run it from Downloads. It replaces the installed
-copy, keeps the registration pointing at the same place, and leaves your accounts
+copy, keeps the registration pointing at the same place, and leaves your profiles
 and rules alone. The download is left alone too, as ever.
 
 ### Moving it
@@ -261,11 +261,11 @@ The icon is `ico\app.ico`, six sizes from 16 to 256 pixels, each stored as a
 | `Mail.cs` | Opening the Gmail compose window |
 | `Config.cs` | `config.json` load/save, rules and matching |
 | `RetryStore.cs` | The saved link of the last automatic forward |
-| `PickerForm.cs` | The account chooser, and where rules are created |
+| `PickerForm.cs` | The profile chooser, and where rules are created |
 | `ToastForm.cs` | The corner notice, which must never take focus |
 | `ForwardDialog.cs` | What happened, and how to undo it |
-| `SettingsForm.cs` | Account list editor |
-| `AccountDialog.cs` | Add/edit one account |
+| `SettingsForm.cs` | Profile list editor |
+| `ProfileDialog.cs` | Add/edit one profile |
 | `RulesDialog.cs` | List and remove rules |
 | `Registration.cs` | HKCU registry entries and self-healing |
 | `SelfInstall.cs` | Copying itself to a permanent home on first run |

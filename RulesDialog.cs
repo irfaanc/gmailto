@@ -88,10 +88,10 @@ internal sealed class RulesDialog : Form
                 ? $"anyone at {rule.Match}"
                 : rule.Match;
 
-            // Fall back to the raw address if the account has since gone, so a
+            // Fall back to the raw address if the profile has since gone, so a
             // hand-edited config shows something rather than a blank cell.
-            Account? account = _config.FindByAddress(rule.EmailAddress);
-            string sender = account is null ? $"{rule.EmailAddress} (missing)" : account.Name;
+            Profile? profile = _config.FindByAddress(rule.EmailAddress);
+            string sender = profile is null ? $"{rule.EmailAddress} (missing)" : profile.Name;
 
             var item = new ListViewItem(applies) { Tag = rule };
             item.SubItems.Add(sender);
@@ -111,7 +111,7 @@ internal sealed class RulesDialog : Form
 
         DialogResult answer = MessageBox.Show(this,
             $"Remove the rule for {rule.Match}?\r\n\r\n" +
-            "Mail to it will go back to asking which account to use.",
+            "Mail to it will go back to asking which profile to use.",
             "gmailto", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         if (answer != DialogResult.Yes) return;
 

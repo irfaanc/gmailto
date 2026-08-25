@@ -6,7 +6,7 @@ using System.Windows.Forms;
 namespace GmailTo;
 
 /// <summary>
-/// Account list editor, shown when the app starts with no mailto: argument.
+/// Profile list editor, shown when the app starts with no mailto: argument.
 ///
 /// Every change is written to disk as it is made. There is no Save button and
 /// no working copy: the list on screen is the config. Rules were already saved
@@ -37,7 +37,7 @@ internal sealed class SettingsForm : Form
     private readonly RegistrationStatus _registrationStatus;
     private readonly string? _registrationError;
 
-    private List<Account> Accounts => _config.Accounts;
+    private List<Profile> Profiles => _config.Profiles;
 
     public SettingsForm(AppConfig config, RegistrationStatus status, string? registrationError)
     {
@@ -258,17 +258,17 @@ internal sealed class SettingsForm : Form
     {
         _list.BeginUpdate();
         _list.Items.Clear();
-        foreach (Account account in Accounts)
+        foreach (Profile profile in Profiles)
         {
-            var item = new ListViewItem(account.Name);
-            item.SubItems.Add(account.EmailAddress);
+            var item = new ListViewItem(profile.Name);
+            item.SubItems.Add(profile.EmailAddress);
             _list.Items.Add(item);
         }
         _list.EndUpdate();
 
-        if (Accounts.Count > 0)
+        if (Profiles.Count > 0)
         {
-            int index = Compat.Clamp(selectIndex, 0, Accounts.Count - 1);
+            int index = Compat.Clamp(selectIndex, 0, Profiles.Count - 1);
             _list.Items[index].Selected = true;
             _list.Items[index].Focused = true;
         }
@@ -282,17 +282,17 @@ internal sealed class SettingsForm : Form
         int index = SelectedIndex;
         _edit.Enabled = _remove.Enabled = index >= 0;
         _up.Enabled = index > 0;
-        _down.Enabled = index >= 0 && index < Accounts.Count - 1;
+        _down.Enabled = index >= 0 && index < Profiles.Count - 1;
     }
 
     private void OnAdd(object? sender, EventArgs e)
     {
-        using var dialog = new AccountDialog(null);
+        using var dialog = new ProfileDialog(null);
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
 
-        Accounts.Add(dialog.Result);
+        Profiles.Add(dialog.Result);
         Persist();
-        Reload(Accounts.Count - 1);
+        Reload(Profiles.Count - 1);
     }
 
     private void EditSelected()
@@ -300,12 +300,12 @@ internal sealed class SettingsForm : Form
         int index = SelectedIndex;
         if (index < 0) return;
 
-        using var dialog = new AccountDialog(Accounts[index]);
+        using var dialog = new ProfileDialog(Profiles[index]);
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
 
         // Rules point at accounts by address, so changing an account's address
         // would otherwise orphan every rule aiming at it.
-        string was = Accounts[index].EmailAddress;
+        string was = Profiles[index].EmailAddress;
         string now = dialog.Result.EmailAddress;
         if (!string.Equals(was, now, StringComparison.OrdinalIgnoreCase))
         {
@@ -316,7 +316,7 @@ internal sealed class SettingsForm : Form
             }
         }
 
-        Accounts[index] = dialog.Result;
+        Profiles[index] = dialog.Result;
         Persist();
         Reload(index);
     }
@@ -326,23 +326,23 @@ internal sealed class SettingsForm : Form
         int index = SelectedIndex;
         if (index < 0) return;
 
-        if (Accounts.Count == 1)
+        if (Profiles.Count == 1)
         {
             MessageBox.Show(this,
-                "This is the only account. Add another before removing this one.",
+                "This is the only profile. Add another before removing this one.",
                 "gmailto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         // A rule aiming at a removed account would sit there matching recipients
         // and resolving to nothing, so say what else is going and take it too.
-        string address = Accounts[index].EmailAddress;
+        string address = Profiles[index].EmailAddress;
         int rules = _config.Rules.Count(r =>
             string.Equals(r.EmailAddress, address, StringComparison.OrdinalIgnoreCase));
 
         string question = rules == 0
-            ? $"Remove \"{Accounts[index].Name}\"?"
-            : $"Remove \"{Accounts[index].Name}\"?\r\n\r\n" +
+            ? $"Remove \"{Profiles[index].Name}\"?"
+            : $"Remove \"{Profiles[index].Name}\"?\r\n\r\n" +
               $"{rules} rule{(rules == 1 ? "" : "s")} pointing at it will be removed too.";
 
         DialogResult answer = MessageBox.Show(this, question, "gmailto",
@@ -351,7 +351,7 @@ internal sealed class SettingsForm : Form
 
         _config.Rules.RemoveAll(r =>
             string.Equals(r.EmailAddress, address, StringComparison.OrdinalIgnoreCase));
-        Accounts.RemoveAt(index);
+        Profiles.RemoveAt(index);
         Persist();
         Reload(index);
     }
@@ -360,9 +360,9 @@ internal sealed class SettingsForm : Form
     {
         int index = SelectedIndex;
         int target = index + delta;
-        if (index < 0 || target < 0 || target >= Accounts.Count) return;
+        if (index < 0 || target < 0 || target >= Profiles.Count) return;
 
-        (Accounts[index], Accounts[target]) = (Accounts[target], Accounts[index]);
+        (Profiles[index], Profiles[target]) = (Profiles[target], Profiles[index]);
         Persist();
         Reload(target);
     }
@@ -373,7 +373,7 @@ internal sealed class SettingsForm : Form
 
         // Both prompts live here rather than before the window opens, so they
         // have an owner and the user can see what they refer to behind them.
-        if (!EnsureFirstAccount())
+        if (!EnsureFirstProfile())
         {
             DialogResult = DialogResult.Cancel;   // closes a modal form
             return;
@@ -394,22 +394,22 @@ internal sealed class SettingsForm : Form
     /// send mail, so an empty list is not a state worth letting the user sit in.
     /// </summary>
     /// <returns>False if the user declined, in which case there is nothing to do.</returns>
-    private bool EnsureFirstAccount()
+    private bool EnsureFirstProfile()
     {
-        if (Accounts.Count > 0) return true;
+        if (Profiles.Count > 0) return true;
 
-        using (var dialog = new AccountDialog(null))
+        using (var dialog = new ProfileDialog(null))
         {
             if (dialog.ShowDialog(this) != DialogResult.OK)
             {
                 MessageBox.Show(this,
-                    "At least one Gmail account is needed before this can send " +
+                    "At least one profile is needed before this can send " +
                     "anything.\r\n\r\nRun it again when you are ready to add one.",
                     "gmailto", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return false;
             }
 
-            Accounts.Add(dialog.Result);
+            Profiles.Add(dialog.Result);
         }
 
         Persist();

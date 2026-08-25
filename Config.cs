@@ -2,7 +2,7 @@ using System.Runtime.Serialization;
 
 namespace GmailTo;
 
-internal sealed class Account
+internal sealed class Profile
 {
     public string Name { get; set; } = "";
 
@@ -19,7 +19,7 @@ internal sealed class Account
 
     public override string ToString() => Name;
 
-    public Account Clone() => new() { Name = Name, EmailAddress = EmailAddress };
+    public Profile Clone() => new() { Name = Name, EmailAddress = EmailAddress };
 }
 
 internal enum RuleKind
@@ -43,7 +43,7 @@ internal sealed class Rule
     /// <summary>The address or the domain, depending on <see cref="Kind"/>.</summary>
     public string Match { get; set; } = "";
 
-    /// <summary>Address of the account to send from. Accounts are identified by address everywhere.</summary>
+    /// <summary>Address of the profile to send from. Profiles are identified by address everywhere.</summary>
     public string EmailAddress { get; set; } = "";
 
     public Rule Clone() => new() { Kind = Kind, Match = Match, EmailAddress = EmailAddress };
@@ -61,7 +61,7 @@ internal sealed class ForwardRecord
     /// <summary>The <see cref="Rule.Match"/> that fired.</summary>
     public string MatchedRule { get; set; } = "";
 
-    /// <summary>Address of the account it was sent from.</summary>
+    /// <summary>Address of the profile it was sent from.</summary>
     public string SentFrom { get; set; } = "";
 
     public DateTimeOffset When { get; set; }
@@ -69,7 +69,7 @@ internal sealed class ForwardRecord
 
 internal sealed class AppConfig
 {
-    public List<Account> Accounts { get; set; } = new();
+    public List<Profile> Profiles { get; set; } = new();
 
     public List<Rule> Rules { get; set; } = new();
 
@@ -94,7 +94,7 @@ internal sealed class AppConfig
 
     /// <summary>
     /// A new config starts empty on purpose. Seeding a guessed entry would put a
-    /// plausible-looking account in the list that nobody chose; the settings
+    /// plausible-looking profile in the list that nobody chose; the settings
     /// window asks for the first real one instead.
     /// </summary>
     public static AppConfig CreateDefault() => new();
@@ -102,7 +102,7 @@ internal sealed class AppConfig
     /// <summary>
     /// Reads config.json. A missing file is not an error: a default config is
     /// written and returned. A corrupt file throws so the caller can complain
-    /// loudly rather than silently losing the user's account list.
+    /// loudly rather than silently losing the user's profile list.
     /// </summary>
     public static AppConfig Load()
     {
@@ -137,12 +137,12 @@ internal sealed class AppConfig
         if (config is null)
             throw new InvalidDataException($"{path} is empty or contains only \"null\".");
 
-        if (config.Accounts is null) config.Accounts = new List<Account>();
+        if (config.Profiles is null) config.Profiles = new List<Profile>();
 
         // An entry without an address cannot select a mailbox, so it is dropped
         // rather than left in the picker to fail at send time. The settings
         // window then asks for a real one.
-        config.Accounts.RemoveAll(a => a is null
+        config.Profiles.RemoveAll(a => a is null
             || string.IsNullOrWhiteSpace(a.Name)
             || string.IsNullOrWhiteSpace(a.EmailAddress));
         return config;
@@ -183,8 +183,8 @@ internal sealed class AppConfig
             string.Equals(r.Match, domain, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>The account a matching rule points at, if the rule and account both still exist.</summary>
-    public Account? MatchAccount(string? recipient) => FindByAddress(MatchRule(recipient)?.EmailAddress);
+    /// <summary>The profile a matching rule points at, if the rule and profile both still exist.</summary>
+    public Profile? MatchProfile(string? recipient) => FindByAddress(MatchRule(recipient)?.EmailAddress);
 
     /// <summary>
     /// Adds a rule, replacing any existing one for the same target. Choosing
@@ -200,9 +200,9 @@ internal sealed class AppConfig
         Rules.Add(new Rule { Kind = kind, Match = match.Trim(), EmailAddress = emailAddress.Trim() });
     }
 
-    public Account? FindByAddress(string? address) =>
+    public Profile? FindByAddress(string? address) =>
         string.IsNullOrWhiteSpace(address)
             ? null
-            : Accounts.FirstOrDefault(a =>
+            : Profiles.FirstOrDefault(a =>
                 string.Equals(a.EmailAddress, address, StringComparison.OrdinalIgnoreCase));
 }
