@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Drawing;
 using System.Windows.Forms;
@@ -134,7 +134,7 @@ internal sealed class SettingsForm : Form
         {
             MessageBox.Show(this,
                 $"Could not save {AppConfig.FilePath}:\r\n\r\n{ex.Message}\r\n\r\n" +
-                "The change is shown here but is not on disk yet.",
+                "The change is shown here, but it won't be saved for next time.",
                 "gmailto", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
@@ -162,7 +162,7 @@ internal sealed class SettingsForm : Form
             // Turned off on purpose is a settled state, not a problem to flag.
             Set(_config.StoppedHandling
                     ? "Not handling mail links."
-                    : "Windows is sending mail links elsewhere.",
+                    : "Windows is sending mail links to another program.",
                 _config.StoppedHandling ? SystemColors.GrayText : Color.Firebrick);
             return;
         }

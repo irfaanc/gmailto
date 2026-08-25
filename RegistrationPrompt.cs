@@ -1,4 +1,4 @@
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace GmailTo;
 
@@ -26,12 +26,20 @@ internal static class RegistrationPrompt
     {
         if (Registration.IsEffectiveHandler()) return true;
 
-        DialogResult answer = Show(owner,
-            "Windows is not sending mail links to gmailto" +
-            DescribeCurrentHandler() + ".\r\n\r\n" +
-            "Make gmailto the handler? This replaces the current one.\r\n\r\n" +
-            "Until that is done, mail links keep going wherever they go today " +
-            "and this app never sees them.",
+        // Two versions, because the middle sentence has nothing to name when
+        // Windows will not say what it is using. Reaching here at all means
+        // something else is handling mail links: an empty UserChoice only means
+        // Windows has not recorded which, not that the slot is free.
+        string? current = Registration.DefaultHandlerProgId();
+        string message = string.IsNullOrEmpty(current)
+            ? "Windows is not set up to use gmailto yet.\r\n\r\n" +
+              "If you want gmailto to handle your mail, we need to change that. " +
+              "Set it up now?"
+            : "Windows is not set up to use gmailto yet. It's currently using " +
+              current + ".\r\n\r\nIf you want gmailto to handle your mail, it needs " +
+              "to replace it. Set it up now?";
+
+        DialogResult answer = Show(owner, message,
             MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
         return answer == DialogResult.Yes && Claim(owner);
@@ -50,15 +58,16 @@ internal static class RegistrationPrompt
         // some builds, so it is attempted rather than assumed.
         if (Registration.TryClaimDefault(out string? claimError))
         {
-            Show(owner, "Done. Mail links now open in gmailto.",
+            Show(owner, "All done! Mail links will now be handled by gmailto.",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             return true;
         }
 
         Show(owner,
             "Windows would not let the change be made directly" +
-            (claimError is null ? "" : $" ({claimError})") + ", so it has to be " +
-            "done by hand.\r\n\r\nSettings will open next.",
+            (claimError is null ? "" : $" ({claimError})") + ".  You'll have to set " +
+            "it yourself.\r\n\r\nBut don't worry - we'll open the Settings screen for " +
+            "you.  Remember to choose gmailto!",
             MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         try
@@ -68,9 +77,9 @@ internal static class RegistrationPrompt
         catch (Exception ex)
         {
             Show(owner,
-                "Could not open Windows Settings:\r\n\r\n" + ex.Message +
-                "\r\n\r\nOpen Settings > Apps > Default apps by hand and set MAILTO " +
-                "to gmailto.",
+                "We weren't able to open Windows Settings:\r\n\r\n" + ex.Message +
+                "\r\n\r\nYou'll have to do it manually:\r\n" +
+                "Open \"Settings > Apps > Default apps\", and set MAILTO to gmailto.",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
@@ -116,8 +125,8 @@ internal static class RegistrationPrompt
         if (status != RegistrationStatus.Failed) return;
 
         Show(owner,
-            "Could not write this app's registry entries, so Windows will not " +
-            "offer it as a mail handler.\r\n\r\n" + error,
+            "We couldn't update the Windows registry settings. Which means gmailto " +
+            "won't be able to handle your mail.\r\n\r\n" + error,
             MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 

@@ -44,7 +44,7 @@ internal static class Program
             {
                 ShowError(
                     "This app expects a mailto: link.\r\n\r\nIt was started with:\r\n" +
-                    args[0] + "\r\n\r\nRun it with no arguments to edit profiles.");
+                    args[0] + "\r\n\r\nRun it without any arguments to edit profiles.");
                 return 2;
             }
 
@@ -116,10 +116,11 @@ internal static class Program
             // happened, and as a plain gap otherwise.
             ShowWarning(SelfInstall.JustInstalled
                 ? "Installed to\r\n" + SelfInstall.InstalledDirectory +
-                  "\r\n\r\nOne step left: a profile to send from. The window that opens " +
-                  "next asks for it, then this message will carry on."
+                  "\r\n\r\nLast step: You need a profile to send from. Add one on the next " +
+                  $"screen, then we can write this email to {request.PrimaryRecipient}."
                 : "No profiles are set up yet, so there is nowhere to send this.\r\n\r\n" +
-                  "Add one in the settings window that opens next and this message will carry on.");
+                  "Add one in the next window, so we can finish writing this email to " +
+                  $"{request.PrimaryRecipient}.");
             RunSettings();
 
             // Pick up whatever the settings window just wrote, then continue
@@ -262,7 +263,7 @@ internal static class Program
             DialogResult answer = MessageBox.Show(
                 "The settings file could not be loaded:\r\n\r\n" + ex.Message +
                 "\r\n\r\nReplace it with a fresh default config?\r\n" +
-                "(Choose No to leave the file alone and fix it yourself.)",
+                "(Choose No to leave the file alone so you can fix it yourself.)",
                 Title, MessageBoxButtons.YesNo, MessageBoxIcon.Error);
 
             if (answer != DialogResult.Yes) return null;

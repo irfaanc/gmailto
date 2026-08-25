@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
 
 namespace GmailTo;
@@ -37,7 +37,7 @@ internal sealed class RulesDialog : Form
         _list.SetBounds(12, 12, 420, 210);
         _list.SelectedIndexChanged += (_, _) => UpdateButtons();
 
-        _hint.Text = "Rules are created in the picker, using \"Remember\" when you send.";
+        _hint.Text = "Rules are automatically created by selecting \"Remember\" when you pick a profile to send with.";
         _hint.ForeColor = SystemColors.GrayText;
         _hint.AutoEllipsis = true;
         _hint.SetBounds(12, 230, 420, 18);
@@ -111,7 +111,7 @@ internal sealed class RulesDialog : Form
 
         DialogResult answer = MessageBox.Show(this,
             $"Remove the rule for {rule.Match}?\r\n\r\n" +
-            "Mail to it will go back to asking which profile to use.",
+            $"Mail sent to {rule.Match} will go back to asking which profile to use.",
             "gmailto", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         if (answer != DialogResult.Yes) return;
 

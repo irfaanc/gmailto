@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
 
 namespace GmailTo;
@@ -38,8 +38,8 @@ internal sealed class ForwardDialog : Form
         string sender = profile?.Name ?? record.SentFrom;
 
         _what.Text =
-            $"A mail link to {record.Recipient} was opened from {sender} " +
-            $"without asking, because of the rule for {record.MatchedRule}.";
+            $"A mail to {record.Recipient} was automatically handled by {sender}, " +
+            $"because of your rule for {record.MatchedRule}.";
         _what.SetBounds(12, 12, 400, 56);
 
         _when.Text = record.When == default
@@ -116,14 +116,14 @@ internal sealed class ForwardDialog : Form
 
         if (removed == 0)
         {
-            MessageBox.Show(this, "That rule has already been removed.", "gmailto",
+            MessageBox.Show(this, "This rule was already removed.", "gmailto",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         else
         {
             TrySave();
             MessageBox.Show(this,
-                $"Removed. Mail to {_record.MatchedRule} will ask which profile to use again.",
+                $"Removed. Next time, mail to {_record.MatchedRule} will ask which profile to use.",
                 "gmailto", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

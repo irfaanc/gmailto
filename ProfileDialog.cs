@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
 
 namespace GmailTo;
@@ -136,7 +136,7 @@ internal sealed class ProfileDialog : Form
         string email = _email.Text.Trim();
         if (email.Length == 0)
         {
-            Reject("Enter the Gmail address this profile sends from.", _email);
+            Reject("Enter the Gmail address this profile will send from.", _email);
             return;
         }
 

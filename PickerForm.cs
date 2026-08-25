@@ -109,7 +109,7 @@ internal sealed class PickerForm : Form
         _remember.SelectedIndex = 0;
         _remember.Enabled = _rememberOptions.Count > 1;
 
-        _hint.Text = "Enter or click to open  ·  Esc to cancel";
+        _hint.Text = "Enter or Click to open  ·  Esc to cancel";
         _hint.ForeColor = SystemColors.GrayText;
         _hint.SetBounds(12, 0, 316, 18);
 
