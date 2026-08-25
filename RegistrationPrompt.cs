@@ -36,8 +36,8 @@ internal static class RegistrationPrompt
               "If you want gmailto to handle your mail, we need to change that. " +
               "Set it up now?"
             : "Windows is not set up to use gmailto yet. It's currently using " +
-              current + ".\r\n\r\nIf you want gmailto to handle your mail, it needs " +
-              "to replace it. Set it up now?";
+              FriendlyHandlerName(current!) + ".\r\n\r\nIf you want gmailto to handle " +
+              "your mail, it needs to replace it. Set it up now?";
 
         DialogResult answer = Show(owner, message,
             MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
@@ -113,10 +113,45 @@ internal static class RegistrationPrompt
         }
     }
 
+    /// <summary>
+    /// Friendly names for the handlers most likely to be found, because the
+    /// ProgID Windows records is an identifier rather than a product name:
+    /// "MSEdgeHTM" is not a useful thing to show somebody.
+    ///
+    /// Matched on a prefix, since ProgIDs carry version suffixes. Outlook 2016
+    /// registers Outlook.URL.mailto.15.
+    ///
+    /// Deliberately short, and only entries that could be checked. A name that
+    /// is wrong is worse than a ProgID that is merely ugly: it sends the reader
+    /// looking for the wrong application. Anything not listed here is shown
+    /// exactly as Windows recorded it.
+    /// </summary>
+    private static readonly KeyValuePair<string, string>[] KnownHandlers =
+    {
+        new("Outlook.URL.mailto", "Outlook"),
+        new("Microsoft.OutlookForWindows", "Outlook"),
+        new("Thunderbird.Url.mailto", "Thunderbird"),
+        new("MSEdge", "Microsoft Edge"),
+        new("ChromeHTML", "Google Chrome"),
+        new("FirefoxURL", "Firefox"),
+        new("microsoft.windowscommunicationsapps", "Mail"),
+    };
+
+    private static string FriendlyHandlerName(string progId)
+    {
+        foreach (KeyValuePair<string, string> known in KnownHandlers)
+        {
+            if (progId.StartsWith(known.Key, StringComparison.OrdinalIgnoreCase))
+                return known.Value;
+        }
+
+        return progId;
+    }
+
     private static string DescribeCurrentHandler()
     {
         string? progId = Registration.DefaultHandlerProgId();
-        return string.IsNullOrEmpty(progId) ? "" : $" ({progId})";
+        return string.IsNullOrEmpty(progId) ? "" : $" ({FriendlyHandlerName(progId!)})";
     }
 
     /// <summary>Reports the outcome of the startup registry pass, if it failed.</summary>
