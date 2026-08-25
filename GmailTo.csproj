@@ -24,7 +24,13 @@
     <RootNamespace>GmailTo</RootNamespace>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <Version>1.0.0</Version>
+    <!-- Deliberately not a real version. The tag is the only source of one:
+         the release workflow passes -p:Version from it, so anything built any
+         other way says 0.0.0-dev and cannot be mistaken for a release. A real
+         number here would have to be bumped alongside every tag, and
+         forgetting would be silent: the binary would claim the previous
+         version while the release claimed the new one. -->
+    <Version>0.0.0-dev</Version>
     <Product>gmailto</Product>
     <AssemblyTitle>gmailto</AssemblyTitle>
     <Company>Irfaan Chaudhry</Company>
