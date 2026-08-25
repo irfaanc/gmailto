@@ -372,7 +372,7 @@ internal static class Registration
     }
 
     /// <summary>Pulls the executable out of a "path" "%1" style command line.</summary>
-    private static string? ExtractExePath(string command)
+    public static string? ExtractExePath(string command)
     {
         command = command.Trim();
         if (command.Length == 0) return null;

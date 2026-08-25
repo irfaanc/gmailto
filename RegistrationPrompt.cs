@@ -1,4 +1,6 @@
-﻿using System.Windows.Forms;
+﻿using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace GmailTo;
 
@@ -145,7 +147,51 @@ internal static class RegistrationPrompt
                 return known.Value;
         }
 
-        return progId;
+        return DescribeFromRegistry(progId) ?? progId;
+    }
+
+    /// <summary>
+    /// What the handler calls itself, for anything the table does not name.
+    ///
+    /// The exe's own FileDescription first, since that is the product name as
+    /// its author wrote it, and it cannot go stale the way a list would. The
+    /// class description second: "Microsoft Edge HTML Document" is clumsy, but
+    /// it beats showing somebody "MSEdgeHTM".
+    ///
+    /// Packaged apps register an activation ProgID with no exe behind it, so
+    /// this finds nothing for those and the caller falls back to the ProgID.
+    /// </summary>
+    private static string? DescribeFromRegistry(string progId)
+    {
+        try
+        {
+            using (RegistryKey? command =
+                Registry.ClassesRoot.OpenSubKey(progId + @"\shell\open\command"))
+            {
+                if (command?.GetValue(null) is string line)
+                {
+                    string? exe = Registration.ExtractExePath(line);
+                    if (!string.IsNullOrEmpty(exe) && File.Exists(exe))
+                    {
+                        string? described = FileVersionInfo.GetVersionInfo(exe!).FileDescription;
+                        if (!string.IsNullOrWhiteSpace(described)) return described!.Trim();
+                    }
+                }
+            }
+
+            using (RegistryKey? cls = Registry.ClassesRoot.OpenSubKey(progId))
+            {
+                if (cls?.GetValue(null) is string label && !string.IsNullOrWhiteSpace(label))
+                    return label.Trim();
+            }
+        }
+        catch
+        {
+            // Naming the current handler is a nicety. It must never be the
+            // reason the prompt fails to appear.
+        }
+
+        return null;
     }
 
     private static string DescribeCurrentHandler()
